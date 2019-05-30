@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.572
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "lab2_restapi_1205_taskmgmt", "lab2_restapi_1205_taskmgmt\lab2_restapi_1205_taskmgmt.csproj", "{42E4B32A-214A-4F99-8443-0956082A36F0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestServiceTask", "TestServiceTask\TestServiceTask.csproj", "{6CBA0A81-83A1-41C3-932B-159360C6A2F8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{42E4B32A-214A-4F99-8443-0956082A36F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42E4B32A-214A-4F99-8443-0956082A36F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42E4B32A-214A-4F99-8443-0956082A36F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42E4B32A-214A-4F99-8443-0956082A36F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6CBA0A81-83A1-41C3-932B-159360C6A2F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6CBA0A81-83A1-41C3-932B-159360C6A2F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6CBA0A81-83A1-41C3-932B-159360C6A2F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6CBA0A81-83A1-41C3-932B-159360C6A2F8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1112D28D-A139-410C-8C95-79B5E67F45D5}
+	EndGlobalSection
+EndGlobal
