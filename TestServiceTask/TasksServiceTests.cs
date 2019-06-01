@@ -18,7 +18,7 @@ namespace Tests
         {
             config = Options.Create(new AppSettings
             {
-                Secret = "My armor is contempt, my shield is disgust, my sword is hatred, int the Emperor's name let none survive"
+                Secret = "My armor is contempt, my shield is disgust, my sword is hatred, in the Emperor's name let none survive"
             });
         }
 

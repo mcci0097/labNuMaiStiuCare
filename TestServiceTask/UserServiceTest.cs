@@ -102,7 +102,7 @@ namespace TestServiceTask
                     FirstName = "Aragorn",
                     LastName = "True King",
                     Password = "12345678",
-                    Username = "kingmand"
+                    Username = "kingman"
                 };
                 usersService.Register(added);
 
