@@ -13,6 +13,6 @@ namespace lab2_restapi_1205_taskmgmt.ViewModels
         [EmailAddress]
         public string Email { get; set; }
         [StringLength(150, MinimumLength = 6)]
-        public string Password { get; set; }
+        public string Password { get; set; }     
     }
 }
