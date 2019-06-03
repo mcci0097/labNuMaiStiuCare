@@ -1,4 +1,5 @@
-﻿using lab2_restapi_1205_taskmgmt.Services;
+﻿using lab2_restapi_1205_taskmgmt.Models;
+using lab2_restapi_1205_taskmgmt.Services;
 using lab2_restapi_1205_taskmgmt.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -15,10 +16,12 @@ namespace lab2_restapi_1205_taskmgmt.Controllers
     {
         //  private TasksDbContext context;
         private ITaskService taskService;
+        private IUserService userService;
 
-        public TasksController(ITaskService taskService)
+        public TasksController(ITaskService taskService, IUserService userService)
         {
             this.taskService = taskService;
+            this.userService = userService;
         }
 
         // GET: api/Task
@@ -95,7 +98,7 @@ namespace lab2_restapi_1205_taskmgmt.Controllers
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [Authorize]
+        [Authorize(Roles = "Regular, Admin")]
         [HttpGet("{id}", Name = "Get")]
         public IActionResult Get(int id)
         {
@@ -117,11 +120,12 @@ namespace lab2_restapi_1205_taskmgmt.Controllers
 
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [Authorize]
+        [Authorize(Roles = "Admin, Regular")]
         [HttpPost]
         public void Post([FromBody] TaskPostModel task)
         {
-            taskService.Create(task);
+            User addedBy = userService.GetCurentUser(HttpContext);
+            taskService.Create(task, addedBy);            
             //if (!ModelState.IsValid)
             //{
             //}
@@ -152,7 +156,7 @@ namespace lab2_restapi_1205_taskmgmt.Controllers
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [Authorize]
+        [Authorize(Roles = "Admin, Regular")]
         [HttpPut("{id}")]
         public IActionResult Put(int id, [FromBody] Task task)
         {
@@ -193,7 +197,7 @@ namespace lab2_restapi_1205_taskmgmt.Controllers
 
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [Authorize]
+        [Authorize(Roles = "Admin, Regular")]
         // DELETE: api/ApiWithActions/5
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)

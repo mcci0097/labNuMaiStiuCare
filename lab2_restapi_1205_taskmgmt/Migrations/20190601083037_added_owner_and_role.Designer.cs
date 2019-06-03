@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using lab2_restapi_1205_taskmgmt.Models;
 
 namespace lab2_restapi_1205_taskmgmt.Migrations
 {
     [DbContext(typeof(TasksDbContext))]
-    partial class TasksDbContextModelSnapshot : ModelSnapshot
+    [Migration("20190601083037_added_owner_and_role")]
+    partial class added_owner_and_role
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -88,8 +90,6 @@ namespace lab2_restapi_1205_taskmgmt.Migrations
                     b.Property<int>("Role");
 
                     b.Property<string>("Username");
-
-                    b.Property<DateTime>("createdAt");
 
                     b.HasKey("Id");
 

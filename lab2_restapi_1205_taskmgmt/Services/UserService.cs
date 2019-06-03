@@ -1,5 +1,7 @@
 ﻿using lab2_restapi_1205_taskmgmt.Models;
 using lab2_restapi_1205_taskmgmt.ViewModels;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -18,6 +20,13 @@ namespace lab2_restapi_1205_taskmgmt.Services
         UserGetModel Authenticate(string username, string password);
         UserGetModel Register(RegisterPostModel register);
         IEnumerable<UserGetModel> GetAll();
+        User GetCurentUser(HttpContext httpContext);
+
+        User GetById(int id);
+        User Create(UserPostModel userModel);
+        User Upsert(int id, UserPostModel userPostModel, User addedBy);
+        User Delete(int id);
+
     }
 
     public class UserService : IUserService
@@ -48,7 +57,8 @@ namespace lab2_restapi_1205_taskmgmt.Services
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
-                    new Claim(ClaimTypes.Name, user.Username.ToString())
+                    new Claim(ClaimTypes.Name, user.Username.ToString()),
+                    new Claim(ClaimTypes.Role, user.Role.ToString())
                 }),
                 Expires = DateTime.UtcNow.AddDays(7),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
@@ -99,10 +109,21 @@ namespace lab2_restapi_1205_taskmgmt.Services
                 LastName = register.LastName,
                 FirstName = register.FirstName,
                 Password = ComputeSha256Hash(register.Password),
-                Username = register.Username
+                Username = register.Username,
+                Role = UserRole.Regular,
+                CreatedAt = DateTime.Now                
             });
             dbcontext.SaveChanges();
             return Authenticate(register.Username, register.Password); 
+        }
+
+        public User GetCurentUser(HttpContext httpContext)
+        {
+            string username = httpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name).Value;
+            //string accountType = httpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.AuthenticationMethod).Value;
+            //return _context.Users.FirstOrDefault(u => u.Username == username && u.AccountType.ToString() == accountType);
+
+            return dbcontext.Users.FirstOrDefault(u => u.Username == username);
         }
 
 
@@ -117,6 +138,63 @@ namespace lab2_restapi_1205_taskmgmt.Services
                 Token = null
             });
         }
+
+        public User GetById(int id)
+        {
+            return dbcontext.Users
+                .FirstOrDefault(u => u.Id == id);
+        }
+
+        public User Create(UserPostModel userModel)
+        {
+            User toAdd = UserPostModel.ToUser(userModel);
+
+            dbcontext.Users.Add(toAdd);
+            dbcontext.SaveChanges();
+            return toAdd;
+
+        }
+
+        public User Upsert(int id, UserPostModel userPostModel, User addedBy)
+        {
+            var existing = dbcontext.Users.AsNoTracking().FirstOrDefault(u => u.Id == id);
+            if (existing == null)
+            {
+                User toAdd = UserPostModel.ToUser(userPostModel);
+                dbcontext.Users.Add(toAdd);
+                dbcontext.SaveChanges();
+                return toAdd;
+            }           
+
+            User toUpdate = UserPostModel.ToUser(userPostModel);
+            toUpdate.CreatedAt = existing.CreatedAt;
+            toUpdate.Id = id;
+            if (existing.Role.Equals(UserRole.User_Manager) && addedBy.Role.Equals(UserRole.User_Manager) && addedBy.CreatedAt.AddMonths(6) >= DateTime.Now) {
+                return null;
+            }
+            if (existing.Role.Equals(UserRole.Admin) && addedBy.Role.Equals(UserRole.User_Manager)) {
+                return null;
+            }
+            dbcontext.Users.Update(toUpdate);
+            dbcontext.SaveChanges();
+            return toUpdate;
+        }
+
+
+        public User Delete(int id)
+        {
+            var existing = dbcontext.Users.FirstOrDefault(u => u.Id == id);
+            if (existing == null)
+            {
+                return null;
+            }
+
+            dbcontext.Users.Remove(existing);
+            dbcontext.SaveChanges();
+
+            return existing;
+        }
+
     }
 }
 

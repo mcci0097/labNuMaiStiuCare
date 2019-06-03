@@ -26,6 +26,7 @@ namespace lab2_restapi_1205_taskmgmt.Models
         public DateTime? Added { get; set; }
         public DateTime? Deadline { get; set; }
         public DateTime? ClosedAt { get; set; }
+        public User Owner { get; set; }
 
         [EnumDataType(typeof(Importance))]
         public Importance Importance { get; set; }

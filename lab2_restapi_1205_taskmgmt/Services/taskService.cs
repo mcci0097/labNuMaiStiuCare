@@ -12,7 +12,7 @@ namespace lab2_restapi_1205_taskmgmt.Services
     {
         PaginatedList<TaskGetModel> GetAll(int page, DateTime? from = null, DateTime? to = null);
 
-        Task Create(TaskPostModel task);
+        Task Create(TaskPostModel task, User addedBy);
 
         Task Upsert(int id, Task task);
 
@@ -30,9 +30,11 @@ namespace lab2_restapi_1205_taskmgmt.Services
             this.context = context;
         }
 
-        public Task Create(TaskPostModel task)
+        public Task Create(TaskPostModel task, User addedBy)
         {
             Task toAdd = TaskPostModel.ToTask(task);
+
+            toAdd.Owner = addedBy;
 
             context.Tasks.Add(toAdd);
             context.SaveChanges();

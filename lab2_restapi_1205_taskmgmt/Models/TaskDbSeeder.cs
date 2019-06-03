@@ -47,6 +47,28 @@ namespace lab2_restapi_1205_taskmgmt.Models
                 }
 
             );
+
+            //context.Users.AddRange(
+            //    new User
+            //    {
+            //        FirstName = "Balanelo",
+            //        LastName = "Lukian",
+            //        Username = "bman",
+            //        Email = "bman@gmail.com",
+            //        Password = "1234567",
+            //        Role = UserRole.User_Manager
+            //    },
+
+            //    new User
+            //    {
+            //        FirstName = "Radu Allmighty",
+            //        LastName = "Allpowerfull",
+            //        Username = "king",
+            //        Email = "king@gmail.com",
+            //        Password = "1234567",
+            //        Role = UserRole.Admin
+            //    }
+            //    );
             context.SaveChanges(); // commit transaction
         }
     }

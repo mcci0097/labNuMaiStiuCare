@@ -35,7 +35,7 @@ namespace lab2_restapi_1205_taskmgmt.Controllers
 
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [Authorize]
+        //[Authorize]
         // GET: api/Comments
         [HttpGet]
         public IEnumerable<CommentGetModel> GetAll([FromQuery]String filter)

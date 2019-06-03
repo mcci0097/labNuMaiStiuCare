@@ -15,6 +15,12 @@
     <EmbeddedResource Remove="wwwroot\**" />
     <None Remove="wwwroot\**" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Migrations\20190601084535_modifications.cs" />
+    <Compile Remove="Migrations\20190601084535_modifications.Designer.cs" />
+    <Compile Remove="Migrations\20190601125858_AddUserRole.cs" />
+    <Compile Remove="Migrations\20190601125858_AddUserRole.Designer.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="6.1.0" />
