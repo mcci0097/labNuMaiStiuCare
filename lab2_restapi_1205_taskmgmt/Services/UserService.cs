@@ -170,39 +170,55 @@ namespace lab2_restapi_1205_taskmgmt.Services
             toUpdate.CreatedAt = existing.CreatedAt;
             toUpdate.Id = id;
 
-            //USER_MANAGER FOR REGULAR
-            if (existing.Role.Equals(UserRole.Regular) && addedBy.Role.Equals(UserRole.User_Manager))
+            if ((existing.Role.Equals(UserRole.Regular) && addedBy.Role.Equals(UserRole.User_Manager)) ||
+                (existing.Role.Equals(UserRole.User_Manager) && addedBy.Role.Equals(UserRole.User_Manager) && addedBy.CreatedAt.AddMonths(6) <= DateTime.Now))
             {
                 dbcontext.Users.Update(toUpdate);
                 dbcontext.SaveChanges();
                 return toUpdate;
             }
-            //USER_MANAGER FOR USER_MANAGER
-            else if (existing.Role.Equals(UserRole.User_Manager) && addedBy.Role.Equals(UserRole.User_Manager) && addedBy.CreatedAt.AddMonths(6) <= DateTime.Now)
+            else if ((existing.Role.Equals(UserRole.Regular) && addedBy.Role.Equals(UserRole.Admin)) ||
+               (existing.Role.Equals(UserRole.User_Manager) && addedBy.Role.Equals(UserRole.Admin)))
             {
                 dbcontext.Users.Update(toUpdate);
                 dbcontext.SaveChanges();
                 return toUpdate;
-            }
-            //USER_MANAGER FOR ADMIN
-            else if (existing.Role.Equals(UserRole.Admin) && addedBy.Role.Equals(UserRole.User_Manager))
-            {
-                return null;
             }
 
-            //ADMIN FOR REGULAR
-            else if (existing.Role.Equals(UserRole.Regular) && addedBy.Role.Equals(UserRole.Admin))
-            {
-                dbcontext.Users.Update(toUpdate);
-                dbcontext.SaveChanges();
-                return toUpdate;
-            }
-            //ADMIN FOR USER_MANAGER
-            else if (existing.Role.Equals(UserRole.User_Manager) && addedBy.Role.Equals(UserRole.Admin)) {
-                dbcontext.Users.Update(toUpdate);
-                dbcontext.SaveChanges();
-                return toUpdate;
-            }            
+
+            ////USER_MANAGER FOR REGULAR
+            //if (existing.Role.Equals(UserRole.Regular) && addedBy.Role.Equals(UserRole.User_Manager))
+            //{
+            //    dbcontext.Users.Update(toUpdate);
+            //    dbcontext.SaveChanges();
+            //    return toUpdate;
+            //}
+            ////USER_MANAGER FOR USER_MANAGER
+            //else if (existing.Role.Equals(UserRole.User_Manager) && addedBy.Role.Equals(UserRole.User_Manager) && addedBy.CreatedAt.AddMonths(6) <= DateTime.Now)
+            //{
+            //    dbcontext.Users.Update(toUpdate);
+            //    dbcontext.SaveChanges();
+            //    return toUpdate;
+            //}
+            ////USER_MANAGER FOR ADMIN
+            //else if (existing.Role.Equals(UserRole.Admin) && addedBy.Role.Equals(UserRole.User_Manager))
+            //{
+            //    return null;
+            //}
+            ////ADMIN FOR REGULAR
+            //else if (existing.Role.Equals(UserRole.Regular) && addedBy.Role.Equals(UserRole.Admin))
+            //{
+            //    dbcontext.Users.Update(toUpdate);
+            //    dbcontext.SaveChanges();
+            //    return toUpdate;
+            //}
+            ////ADMIN FOR USER_MANAGER
+            //else if (existing.Role.Equals(UserRole.User_Manager) && addedBy.Role.Equals(UserRole.Admin))
+            //{
+            //    dbcontext.Users.Update(toUpdate);
+            //    dbcontext.SaveChanges();
+            //    return toUpdate;
+            //}            
             return null;
         }
 
