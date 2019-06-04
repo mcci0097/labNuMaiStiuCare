@@ -32,6 +32,7 @@ namespace lab2_restapi_1205_taskmgmt.Controllers
         /// </summary>
         /// <param name="from">Optional, starting point</param>
         /// <param name="to">Optional, ending points</param>
+        /// <param name="page"></param>
         /// <returns>List of tasks</returns>
         ///<remarks>
         ///{

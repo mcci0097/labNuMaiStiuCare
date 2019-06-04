@@ -111,10 +111,10 @@ namespace lab2_restapi_1205_taskmgmt.Services
                 Password = ComputeSha256Hash(register.Password),
                 Username = register.Username,
                 Role = UserRole.Regular,
-                CreatedAt = DateTime.Now                
+                CreatedAt = DateTime.Now
             });
             dbcontext.SaveChanges();
-            return Authenticate(register.Username, register.Password); 
+            return Authenticate(register.Username, register.Password);
         }
 
         public User GetCurentUser(HttpContext httpContext)
@@ -164,20 +164,22 @@ namespace lab2_restapi_1205_taskmgmt.Services
                 dbcontext.Users.Add(toAdd);
                 dbcontext.SaveChanges();
                 return toAdd;
-            }           
+            }
 
             User toUpdate = UserPostModel.ToUser(userPostModel);
             toUpdate.CreatedAt = existing.CreatedAt;
             toUpdate.Id = id;
-            if (existing.Role.Equals(UserRole.User_Manager) && addedBy.Role.Equals(UserRole.User_Manager) && addedBy.CreatedAt.AddMonths(6) >= DateTime.Now) {
+            if (existing.Role.Equals(UserRole.User_Manager) && addedBy.Role.Equals(UserRole.User_Manager) && addedBy.CreatedAt.AddMonths(6) <= DateTime.Now)
+            {
+                dbcontext.Users.Update(toUpdate);
+                dbcontext.SaveChanges();
+                return toUpdate;
+            }
+            else if (existing.Role.Equals(UserRole.Admin) && addedBy.Role.Equals(UserRole.User_Manager))
+            {
                 return null;
             }
-            if (existing.Role.Equals(UserRole.Admin) && addedBy.Role.Equals(UserRole.User_Manager)) {
-                return null;
-            }
-            dbcontext.Users.Update(toUpdate);
-            dbcontext.SaveChanges();
-            return toUpdate;
+            return null;
         }
 
 
