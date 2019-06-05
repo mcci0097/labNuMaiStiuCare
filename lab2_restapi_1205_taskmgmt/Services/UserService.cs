@@ -167,18 +167,22 @@ namespace lab2_restapi_1205_taskmgmt.Services
             }
 
             User toUpdate = UserPostModel.ToUser(userPostModel);
+            toUpdate.Password = existing.Password;
             toUpdate.CreatedAt = existing.CreatedAt;
             toUpdate.Id = id;
 
-            if ((existing.Role.Equals(UserRole.Regular) && addedBy.Role.Equals(UserRole.User_Manager)) ||
+            if (userPostModel.UserRole.Equals("Admin") && !addedBy.Role.Equals(UserRole.Admin))
+            {
+                return null;
+            }
+            else if ((existing.Role.Equals(UserRole.Regular) && addedBy.Role.Equals(UserRole.User_Manager)) ||
                 (existing.Role.Equals(UserRole.User_Manager) && addedBy.Role.Equals(UserRole.User_Manager) && addedBy.CreatedAt.AddMonths(6) <= DateTime.Now))
             {
                 dbcontext.Users.Update(toUpdate);
                 dbcontext.SaveChanges();
                 return toUpdate;
             }
-            else if ((existing.Role.Equals(UserRole.Regular) && addedBy.Role.Equals(UserRole.Admin)) ||
-               (existing.Role.Equals(UserRole.User_Manager) && addedBy.Role.Equals(UserRole.Admin)))
+            else if (addedBy.Role.Equals(UserRole.Admin))
             {
                 dbcontext.Users.Update(toUpdate);
                 dbcontext.SaveChanges();
