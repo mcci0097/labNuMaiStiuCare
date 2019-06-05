@@ -158,12 +158,17 @@ namespace lab2_restapi_1205_taskmgmt.Controllers
         /// </remarks>
         /// <returns>Status 200 daca a fost modificat</returns>
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [Authorize(Roles = "Admin,User_Manager")]
         [HttpPut("{id}")]
         public IActionResult Put(int id, [FromBody] UserPostModel userPostModel)
         {
             User addedBy = userService.GetCurentUser(HttpContext);
             var result = userService.Upsert(id, userPostModel, addedBy);
+            if (result == null)
+            {
+                return Forbid("You have no power here !");
+            }
             return Ok(result);
         }
 
@@ -180,7 +185,8 @@ namespace lab2_restapi_1205_taskmgmt.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            var result = userService.Delete(id);
+            User addedBy = userService.GetCurentUser(HttpContext);
+            var result = userService.Delete(id, addedBy);
             if (result == null)
             {
                 return NotFound("User with the given id not fount !");

@@ -25,7 +25,7 @@ namespace lab2_restapi_1205_taskmgmt.Services
         User GetById(int id);
         User Create(UserPostModel userModel);
         User Upsert(int id, UserPostModel userPostModel, User addedBy);
-        User Delete(int id);
+        User Delete(int id, User addedBy);
 
     }
 
@@ -227,20 +227,43 @@ namespace lab2_restapi_1205_taskmgmt.Services
         }
 
 
-        public User Delete(int id)
+        public User Delete(int id, User addedBy)
         {
-            var existing = dbcontext.Users.FirstOrDefault(u => u.Id == id);
+            var existing = dbcontext.Users.FirstOrDefault(u => u.Id == id);        
             if (existing == null)
             {
                 return null;
             }
 
-            dbcontext.Users.Remove(existing);
-            dbcontext.SaveChanges();
+            if (existing.Role.Equals(UserRole.Admin) && !addedBy.Role.Equals(UserRole.Admin))
+            {
+                return null;
+            }
+            else if ((existing.Role.Equals(UserRole.Regular) && addedBy.Role.Equals(UserRole.User_Manager)) ||
+                (existing.Role.Equals(UserRole.User_Manager) && addedBy.Role.Equals(UserRole.User_Manager) && addedBy.CreatedAt.AddMonths(6) <= DateTime.Now))
+            {                
+                dbcontext.Comments.RemoveRange(dbcontext.Comments.Where(u => u.Owner.Id == existing.Id));
+                dbcontext.SaveChanges();
+                dbcontext.Tasks.RemoveRange(dbcontext.Tasks.Where(u => u.Owner.Id == existing.Id));
+                dbcontext.SaveChanges();
 
-            return existing;
+                dbcontext.Users.Remove(existing);
+                dbcontext.SaveChanges();
+                return existing;
+            }
+            else if (addedBy.Role.Equals(UserRole.Admin))
+            {
+                dbcontext.Comments.RemoveRange(dbcontext.Comments.Where(u => u.Owner.Id == existing.Id));
+                dbcontext.SaveChanges();
+                dbcontext.Tasks.RemoveRange(dbcontext.Tasks.Where(u => u.Owner.Id == existing.Id));
+                dbcontext.SaveChanges();
+
+                dbcontext.Users.Remove(existing);
+                dbcontext.SaveChanges();
+                return existing;
+            }                           
+            return null;
         }
-
     }
 }
 
