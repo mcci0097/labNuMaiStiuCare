@@ -178,6 +178,7 @@ namespace lab2_restapi_1205_taskmgmt.Services
             else if ((existing.Role.Equals(UserRole.Regular) && addedBy.Role.Equals(UserRole.User_Manager)) ||
                 (existing.Role.Equals(UserRole.User_Manager) && addedBy.Role.Equals(UserRole.User_Manager) && addedBy.CreatedAt.AddMonths(6) <= DateTime.Now))
             {
+                toUpdate.Role = existing.Role;
                 dbcontext.Users.Update(toUpdate);
                 dbcontext.SaveChanges();
                 return toUpdate;

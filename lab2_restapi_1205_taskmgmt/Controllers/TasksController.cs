@@ -24,8 +24,6 @@ namespace lab2_restapi_1205_taskmgmt.Controllers
             this.userService = userService;
         }
 
-        // GET: api/Task
-
         /// <summary>
         ///
         /// Returns all task within given timeframe
@@ -51,30 +49,10 @@ namespace lab2_restapi_1205_taskmgmt.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpGet]
-        //   public IEnumerable<Models.Task> Get([FromQuery]DateTime? from, [FromQuery]DateTime? to)
         public PaginatedList<TaskGetModel> Get([FromQuery]DateTime? from, [FromQuery]DateTime? to, [FromQuery] int page = 1)
         {
-
             page = Math.Max(page, 1);
             return taskService.GetAll(page, from, to);
-
-            //IQueryable<Task> result = context.Tasks.Include(f => f.Comments);
-            ////if there are more includes use thenInclude
-
-            //if (from == null && to == null)
-            //{
-            //    return result;
-            //}
-            //if (from != null)
-            //{
-            //    result = result.Where(f => f.Deadline >= from);
-            //}
-
-            //if (to != null)
-            //{
-            //    result = result.Where(f => f.Deadline <= to);
-            //}
-            //return result;
         }
 
         // GET: api/Task/5
@@ -118,7 +96,6 @@ namespace lab2_restapi_1205_taskmgmt.Controllers
         /// </summary>
         /// <param name="task"></param>
         ///
-
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Authorize(Roles = "Admin, Regular")]
@@ -127,11 +104,6 @@ namespace lab2_restapi_1205_taskmgmt.Controllers
         {
             User addedBy = userService.GetCurentUser(HttpContext);
             taskService.Create(task, addedBy);            
-            //if (!ModelState.IsValid)
-            //{
-            //}
-            //context.Tasks.Add(task);
-            //context.SaveChanges();
         }
 
         // PUT: api/Tasks/5
@@ -163,17 +135,6 @@ namespace lab2_restapi_1205_taskmgmt.Controllers
         {
             var result = taskService.Upsert(id, task);
             return Ok(result);
-            //var existing = context.Tasks.AsNoTracking().FirstOrDefault(f => f.Id == id);
-            //if (existing == null)
-            //{
-            //    context.Tasks.Add(task);
-            //    context.SaveChanges();
-            //    return Ok(task);
-            //}
-            //task.Id = id;
-            //context.Tasks.Update(task);
-            //context.SaveChanges();
-            //return Ok(task);
         }
 
         /// <summary>
@@ -209,14 +170,6 @@ namespace lab2_restapi_1205_taskmgmt.Controllers
                 return NotFound();
             }
             return Ok(result);
-            //var existing = context.Tasks.FirstOrDefault(task => task.Id == id);
-            //if (existing == null)
-            //{
-            //    return NotFound();
-            //}
-            //context.Tasks.Remove(existing);
-            //context.SaveChanges();
-            //return Ok();
         }
     }
 }
