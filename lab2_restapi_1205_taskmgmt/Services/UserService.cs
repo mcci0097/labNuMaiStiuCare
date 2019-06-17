@@ -1,4 +1,5 @@
-﻿using lab2_restapi_1205_taskmgmt.Models;
+﻿using lab2_restapi_1205_taskmgmt.Constants;
+using lab2_restapi_1205_taskmgmt.Models;
 using lab2_restapi_1205_taskmgmt.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -110,7 +111,7 @@ namespace lab2_restapi_1205_taskmgmt.Services
                 FirstName = register.FirstName,
                 Password = ComputeSha256Hash(register.Password),
                 Username = register.Username,
-                Role = UserRole.Regular,
+                //Role = UserRole.Regular,
                 CreatedAt = DateTime.Now
             });
             dbcontext.SaveChanges();
@@ -120,9 +121,6 @@ namespace lab2_restapi_1205_taskmgmt.Services
         public User GetCurentUser(HttpContext httpContext)
         {
             string username = httpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name).Value;
-            //string accountType = httpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.AuthenticationMethod).Value;
-            //return _context.Users.FirstOrDefault(u => u.Username == username && u.AccountType.ToString() == accountType);
-
             return dbcontext.Users.FirstOrDefault(u => u.Username == username);
         }
 
@@ -148,6 +146,15 @@ namespace lab2_restapi_1205_taskmgmt.Services
         public User Create(UserPostModel userModel)
         {
             User toAdd = UserPostModel.ToUser(userModel);
+           
+            HistoryUserRole history = new HistoryUserRole();
+            history.Role.Title = RoleConstants.REGULAR;
+            history.AllocatedAt = DateTime.Now;
+            List<HistoryUserRole> list = new List<HistoryUserRole>
+            {
+                history
+            };
+            toAdd.Role = list;
 
             dbcontext.Users.Add(toAdd);
             dbcontext.SaveChanges();
@@ -158,6 +165,9 @@ namespace lab2_restapi_1205_taskmgmt.Services
         public User Upsert(int id, UserPostModel userPostModel, User addedBy)
         {
             var existing = dbcontext.Users.AsNoTracking().FirstOrDefault(u => u.Id == id);
+            String existingCurrentRole = getLatestHistoryUserRole(existing.Role);
+            String addedByCurrentRole = getLatestHistoryUserRole(addedBy.Role);
+
             if (existing == null)
             {
                 User toAdd = UserPostModel.ToUser(userPostModel);
@@ -171,88 +181,45 @@ namespace lab2_restapi_1205_taskmgmt.Services
             toUpdate.CreatedAt = existing.CreatedAt;
             toUpdate.Id = id;
 
-            if (userPostModel.UserRole.Equals("Admin") && !addedBy.Role.Equals(UserRole.Admin))
+            if (userPostModel.UserRole.Equals(RoleConstants.ADMIN) && !addedByCurrentRole.Equals(RoleConstants.ADMIN))
             {
                 return null;
             }
-            else if ((existing.Role.Equals(UserRole.Regular) && addedBy.Role.Equals(UserRole.User_Manager)) ||
-                (existing.Role.Equals(UserRole.User_Manager) && addedBy.Role.Equals(UserRole.User_Manager) && addedBy.CreatedAt.AddMonths(6) <= DateTime.Now))
+            else if (((!existingCurrentRole.Equals(RoleConstants.ADMIN) || (!existingCurrentRole.Equals(RoleConstants.USER_MANAGER)) && addedByCurrentRole.Equals(RoleConstants.USER_MANAGER))) ||
+                (existingCurrentRole.Equals(RoleConstants.USER_MANAGER) && addedByCurrentRole.Equals(RoleConstants.USER_MANAGER) && addedBy.CreatedAt.AddMonths(6) <= DateTime.Now))
             {
+                if(existing)
                 toUpdate.Role = existing.Role;
                 dbcontext.Users.Update(toUpdate);
                 dbcontext.SaveChanges();
                 return toUpdate;
             }
-            else if (addedBy.Role.Equals(UserRole.Admin))
+            else if (addedByCurrentRole.Equals(RoleConstants.ADMIN))
             {
                 dbcontext.Users.Update(toUpdate);
                 dbcontext.SaveChanges();
                 return toUpdate;
-            }
-
-
-            ////USER_MANAGER FOR REGULAR
-            //if (existing.Role.Equals(UserRole.Regular) && addedBy.Role.Equals(UserRole.User_Manager))
-            //{
-            //    dbcontext.Users.Update(toUpdate);
-            //    dbcontext.SaveChanges();
-            //    return toUpdate;
-            //}
-            ////USER_MANAGER FOR USER_MANAGER
-            //else if (existing.Role.Equals(UserRole.User_Manager) && addedBy.Role.Equals(UserRole.User_Manager) && addedBy.CreatedAt.AddMonths(6) <= DateTime.Now)
-            //{
-            //    dbcontext.Users.Update(toUpdate);
-            //    dbcontext.SaveChanges();
-            //    return toUpdate;
-            //}
-            ////USER_MANAGER FOR ADMIN
-            //else if (existing.Role.Equals(UserRole.Admin) && addedBy.Role.Equals(UserRole.User_Manager))
-            //{
-            //    return null;
-            //}
-            ////ADMIN FOR REGULAR
-            //else if (existing.Role.Equals(UserRole.Regular) && addedBy.Role.Equals(UserRole.Admin))
-            //{
-            //    dbcontext.Users.Update(toUpdate);
-            //    dbcontext.SaveChanges();
-            //    return toUpdate;
-            //}
-            ////ADMIN FOR USER_MANAGER
-            //else if (existing.Role.Equals(UserRole.User_Manager) && addedBy.Role.Equals(UserRole.Admin))
-            //{
-            //    dbcontext.Users.Update(toUpdate);
-            //    dbcontext.SaveChanges();
-            //    return toUpdate;
-            //}            
+            }           
             return null;
         }
 
 
         public User Delete(int id, User addedBy)
         {
-            var existing = dbcontext.Users.FirstOrDefault(u => u.Id == id);        
+            var existing = dbcontext.Users.FirstOrDefault(u => u.Id == id);
+            String existingCurrentRole = getLatestHistoryUserRole(existing.Role);
+            String addedByCurrentRole = getLatestHistoryUserRole(addedBy.Role);
             if (existing == null)
             {
                 return null;
             }
 
-            if (existing.Role.Equals(UserRole.Admin) && !addedBy.Role.Equals(UserRole.Admin))
+            if (existingCurrentRole.Equals(RoleConstants.ADMIN) && !addedByCurrentRole.Equals(RoleConstants.ADMIN))
             {
                 return null;
             }
-            else if ((existing.Role.Equals(UserRole.Regular) && addedBy.Role.Equals(UserRole.User_Manager)) ||
-                (existing.Role.Equals(UserRole.User_Manager) && addedBy.Role.Equals(UserRole.User_Manager) && addedBy.CreatedAt.AddMonths(6) <= DateTime.Now))
-            {                
-                dbcontext.Comments.RemoveRange(dbcontext.Comments.Where(u => u.Owner.Id == existing.Id));
-                dbcontext.SaveChanges();
-                dbcontext.Tasks.RemoveRange(dbcontext.Tasks.Where(u => u.Owner.Id == existing.Id));
-                dbcontext.SaveChanges();
-
-                dbcontext.Users.Remove(existing);
-                dbcontext.SaveChanges();
-                return existing;
-            }
-            else if (addedBy.Role.Equals(UserRole.Admin))
+            else if (((!existingCurrentRole.Equals(RoleConstants.ADMIN) || (!existingCurrentRole.Equals(RoleConstants.USER_MANAGER)) && addedByCurrentRole.Equals(RoleConstants.USER_MANAGER))) ||
+                (existingCurrentRole.Equals(RoleConstants.USER_MANAGER) && addedByCurrentRole.Equals(RoleConstants.USER_MANAGER) && addedBy.CreatedAt.AddMonths(6) <= DateTime.Now))
             {
                 dbcontext.Comments.RemoveRange(dbcontext.Comments.Where(u => u.Owner.Id == existing.Id));
                 dbcontext.SaveChanges();
@@ -262,8 +229,26 @@ namespace lab2_restapi_1205_taskmgmt.Services
                 dbcontext.Users.Remove(existing);
                 dbcontext.SaveChanges();
                 return existing;
-            }                           
-            return null;
+            }
+            else if (addedByCurrentRole.Equals(RoleConstants.ADMIN))
+            {
+                dbcontext.Comments.RemoveRange(dbcontext.Comments.Where(u => u.Owner.Id == existing.Id));
+                dbcontext.SaveChanges();
+                dbcontext.Tasks.RemoveRange(dbcontext.Tasks.Where(u => u.Owner.Id == existing.Id));
+                dbcontext.SaveChanges();
+                dbcontext.HistoryUserRoles.RemoveRange(dbcontext.HistoryUserRoles.Where(u => u.User.Id == existing.Id));
+                dbcontext.SaveChanges();
+
+                dbcontext.Users.Remove(existing);
+                dbcontext.SaveChanges();
+                return existing;
+            }
+            return null;          
+        }
+
+        private String getLatestHistoryUserRole(IEnumerable<HistoryUserRole> allHistory) {
+            var latestHistoryUserRole = allHistory.OrderBy(x => x.AllocatedAt).FirstOrDefault();
+            return latestHistoryUserRole.Role.Title;
         }
     }
 }

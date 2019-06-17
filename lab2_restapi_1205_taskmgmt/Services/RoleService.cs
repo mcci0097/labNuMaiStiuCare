@@ -37,13 +37,13 @@ namespace lab2_restapi_1205_taskmgmt.Services
         public PaginatedList<RoleGetModel> GetAll(int page, DateTime? from = null, DateTime? to = null)
         {
             IQueryable<Role> result = dbcontext
-                            .Role
-                            .OrderBy(t => t.Id);                            ;
+                            .Roles
+                            .OrderBy(t => t.Id);
             PaginatedList<RoleGetModel> paginatedList = new PaginatedList<RoleGetModel>();
             paginatedList.CurrentPage = page;
 
             //if there are more includes use thenInclude
-            
+
 
             paginatedList.NumberOfPages = (result.Count() - 1) / PaginatedList<TaskGetModel>.EntriesPerPage + 1;
             result = result
@@ -56,7 +56,7 @@ namespace lab2_restapi_1205_taskmgmt.Services
 
         public Role GetById(int id)
         {
-            return dbcontext.Role
+            return dbcontext.Roles
                 .FirstOrDefault(u => u.Id == id);
         }
 
@@ -64,43 +64,40 @@ namespace lab2_restapi_1205_taskmgmt.Services
         {
             Role toAdd = RolePostModel.ToRole(roleModel);
 
-            dbcontext.Role.Add(toAdd);
+            dbcontext.Roles.Add(toAdd);
             dbcontext.SaveChanges();
-            return toAdd;
-
+            return toAdd;            
         }
 
         public Role Upsert(int id, RolePostModel rolePostModel)
         {
-            var existing = dbcontext.Role.AsNoTracking().FirstOrDefault(u => u.Id == id);
+            var existing = dbcontext.Roles.AsNoTracking().FirstOrDefault(u => u.Id == id);
             if (existing == null)
             {
                 Role toAdd = RolePostModel.ToRole(rolePostModel);
-                dbcontext.Role.Add(toAdd);
+                dbcontext.Roles.Add(toAdd);
                 dbcontext.SaveChanges();
                 return toAdd;
             }
 
             Role toUpdate = RolePostModel.ToRole(rolePostModel);
             toUpdate.Id = id;
-            toUpdate.Role = existing.Role;
-            dbcontext.Users.Update(toUpdate);
+            dbcontext.Roles.Update(toUpdate);
             dbcontext.SaveChanges();
-            return toUpdate;
+            return toUpdate;           
         }
 
 
         public Role Delete(int id)
         {
-            var existing = dbcontext.Role.FirstOrDefault(u => u.Id == id);
+            var existing = dbcontext.Roles.FirstOrDefault(u => u.Id == id);
             if (existing == null)
             {
                 return null;
             }
-            dbcontext.Role.Remove(existing);
+            dbcontext.Roles.Remove(existing);
             dbcontext.SaveChanges();
-            return existing;
-
+            return existing;            
         }
     }
 }
