@@ -15,4 +15,4 @@ namespace lab2_restapi_1205_taskmgmt.Models
         public DateTime? AllocatedAt { get; set; }
         public DateTime? RemovedAt { get; set; }
     }
-}
+} 

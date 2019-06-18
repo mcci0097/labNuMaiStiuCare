@@ -78,7 +78,7 @@ namespace lab2_restapi_1205_taskmgmt.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [Authorize(Roles = "Regular, Admin")]
-        [HttpGet("{id}", Name = "Get")]
+        [HttpGet("{id}", Name = "GetTask")]
         public IActionResult Get(int id)
         {
             var found = taskService.GetById(id);

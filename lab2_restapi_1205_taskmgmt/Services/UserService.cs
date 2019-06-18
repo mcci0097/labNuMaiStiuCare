@@ -24,7 +24,7 @@ namespace lab2_restapi_1205_taskmgmt.Services
         User GetCurentUser(HttpContext httpContext);
 
         User GetById(int id);
-        User Create(UserPostModel userModel);
+        //User Create(UserPostModel userModel);
         User Upsert(int id, UserPostModel userPostModel, User addedBy);
         User Delete(int id, User addedBy);
 
@@ -59,7 +59,8 @@ namespace lab2_restapi_1205_taskmgmt.Services
                 Subject = new ClaimsIdentity(new Claim[]
                 {
                     new Claim(ClaimTypes.Name, user.Username.ToString()),
-                    new Claim(ClaimTypes.Role, user.Role.ToString())
+                    //new Claim(ClaimTypes.Role, user.Role.ToString())
+                    new Claim(ClaimTypes.Role, getLatestHistoryUserRole(user.Role))
                 }),
                 Expires = DateTime.UtcNow.AddDays(7),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
@@ -96,26 +97,51 @@ namespace lab2_restapi_1205_taskmgmt.Services
                 return builder.ToString();
             }
         }
-        public UserGetModel Register(RegisterPostModel register)
+        public UserGetModel Register(RegisterPostModel registerInfo)
         {
-            User existing = dbcontext.Users.FirstOrDefault(u => u.Username == register.Username);
+
+            User existing = dbcontext.Users.FirstOrDefault(u => u.Username == registerInfo.Username);
             if (existing != null)
             {
                 return null;
             }
 
-            dbcontext.Users.Add(new User
-            {
-                Email = register.Email,
-                LastName = register.LastName,
-                FirstName = register.FirstName,
-                Password = ComputeSha256Hash(register.Password),
-                Username = register.Username,
-                //Role = UserRole.Regular,
-                CreatedAt = DateTime.Now
-            });
+            User toBeAdded = new User
+            { 
+                Email = registerInfo.Email,
+                LastName = registerInfo.LastName,
+                FirstName = registerInfo.FirstName,
+                Password = ComputeSha256Hash(registerInfo.Password),
+                Username = registerInfo.Username,
+            };
+            dbcontext.Users.Add(toBeAdded);
             dbcontext.SaveChanges();
-            return Authenticate(register.Username, register.Password);
+            dbcontext.Users.Attach(toBeAdded);
+            
+
+            Role role = new Role
+            {
+                Id = 1,         
+                Title = RoleConstants.REGULAR
+            };
+            HistoryUserRole history = new HistoryUserRole
+            {
+                Role = role,
+                AllocatedAt = DateTime.Now
+            };
+            List<HistoryUserRole> list = new List<HistoryUserRole>
+            {
+                history
+            };
+
+            dbcontext.Roles.Add(role);                        
+            dbcontext.Roles.Attach(role);
+
+            toBeAdded.Role = list;
+
+            dbcontext.SaveChanges();
+
+            return Authenticate(registerInfo.Username, registerInfo.Password);
         }
 
         public User GetCurentUser(HttpContext httpContext)
@@ -143,24 +169,25 @@ namespace lab2_restapi_1205_taskmgmt.Services
                 .FirstOrDefault(u => u.Id == id);
         }
 
-        public User Create(UserPostModel userModel)
-        {
-            User toAdd = UserPostModel.ToUser(userModel);
-           
-            HistoryUserRole history = new HistoryUserRole();
-            history.Role.Title = RoleConstants.REGULAR;
-            history.AllocatedAt = DateTime.Now;
-            List<HistoryUserRole> list = new List<HistoryUserRole>
-            {
-                history
-            };
-            toAdd.Role = list;
+        // This is the same thing as Register
+        //public User Create(UserPostModel userModel)
+        //{
+        //    User toAdd = UserPostModel.ToUser(userModel);
+        //    toAdd.CreatedAt = DateTime.Now;
 
-            dbcontext.Users.Add(toAdd);
-            dbcontext.SaveChanges();
-            return toAdd;
+        //    HistoryUserRole history = new HistoryUserRole();
+        //    history.Role.Title = RoleConstants.REGULAR;
+        //    history.AllocatedAt = DateTime.Now;
+        //    List<HistoryUserRole> list = new List<HistoryUserRole>
+        //    {
+        //        history
+        //    };
+        //    toAdd.Role = list;
 
-        }
+        //    dbcontext.Users.Add(toAdd);
+        //    dbcontext.SaveChanges();
+        //    return toAdd;
+        //}
 
         public User Upsert(int id, UserPostModel userPostModel, User addedBy)
         {
@@ -188,7 +215,6 @@ namespace lab2_restapi_1205_taskmgmt.Services
             else if (((!existingCurrentRole.Equals(RoleConstants.ADMIN) || (!existingCurrentRole.Equals(RoleConstants.USER_MANAGER)) && addedByCurrentRole.Equals(RoleConstants.USER_MANAGER))) ||
                 (existingCurrentRole.Equals(RoleConstants.USER_MANAGER) && addedByCurrentRole.Equals(RoleConstants.USER_MANAGER) && addedBy.CreatedAt.AddMonths(6) <= DateTime.Now))
             {
-                if(existing)
                 toUpdate.Role = existing.Role;
                 dbcontext.Users.Update(toUpdate);
                 dbcontext.SaveChanges();
@@ -199,7 +225,7 @@ namespace lab2_restapi_1205_taskmgmt.Services
                 dbcontext.Users.Update(toUpdate);
                 dbcontext.SaveChanges();
                 return toUpdate;
-            }           
+            }
             return null;
         }
 
@@ -243,10 +269,11 @@ namespace lab2_restapi_1205_taskmgmt.Services
                 dbcontext.SaveChanges();
                 return existing;
             }
-            return null;          
+            return null;
         }
 
-        private String getLatestHistoryUserRole(IEnumerable<HistoryUserRole> allHistory) {
+        private String getLatestHistoryUserRole(IEnumerable<HistoryUserRole> allHistory)
+        {
             var latestHistoryUserRole = allHistory.OrderBy(x => x.AllocatedAt).FirstOrDefault();
             return latestHistoryUserRole.Role.Title;
         }

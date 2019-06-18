@@ -128,15 +128,18 @@ namespace lab2_restapi_1205_taskmgmt.Controllers
         ///        userRole = "regular"
         ///     }
         /// </remarks>
-        /// <param name="userPostModel">The input user to be added</param>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [Authorize(Roles = "Admin, User_Manager")]
-        [HttpPost]
-        public void Post([FromBody] UserPostModel userPostModel)
-        {
-            userService.Create(userPostModel);
-        }
+        /// <param name="userPostModel">The input user to be added</param>        
+
+            //This is the same as Register
+
+        //[ProducesResponseType(StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //[Authorize(Roles = "Admin, User_Manager")]
+        //[HttpPost]
+        //public void Post([FromBody] UserPostModel userPostModel)
+        //{
+        //    userService.Create(userPostModel);
+        //}
 
 
 

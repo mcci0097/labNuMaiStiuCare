@@ -11,7 +11,7 @@ namespace lab2_restapi_1205_taskmgmt.Services
 {
     public interface IRoleService
     {
-        PaginatedList<RoleGetModel> GetAll(int page, DateTime? from = null, DateTime? to = null);
+        PaginatedList<RoleGetModel> GetAll(int page);
 
         Role Create(RolePostModel role);
 
@@ -34,7 +34,7 @@ namespace lab2_restapi_1205_taskmgmt.Services
             this.appSettings = appSettings.Value;
         }
 
-        public PaginatedList<RoleGetModel> GetAll(int page, DateTime? from = null, DateTime? to = null)
+        public PaginatedList<RoleGetModel> GetAll(int page)
         {
             IQueryable<Role> result = dbcontext
                             .Roles
