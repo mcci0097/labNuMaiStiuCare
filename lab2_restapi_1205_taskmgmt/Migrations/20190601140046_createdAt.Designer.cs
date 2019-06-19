@@ -87,7 +87,7 @@ namespace lab2_restapi_1205_taskmgmt.Migrations
 
                     b.Property<string>("Password");
 
-                    b.Property<int>("Role");
+                    b.Property<int>("History");
 
                     b.Property<string>("Username");
 

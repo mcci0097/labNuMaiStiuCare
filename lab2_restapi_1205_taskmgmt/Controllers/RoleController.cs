@@ -53,7 +53,7 @@ namespace lab2_restapi_1205_taskmgmt.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         public IActionResult Post([FromBody] RolePostModel role)
         {            
             roleService.Create(role);

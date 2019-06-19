@@ -9,6 +9,6 @@ namespace lab2_restapi_1205_taskmgmt.Models
     {
         public int Id { get; set; }
         public string Title { get; set; }  
-        public IEnumerable<HistoryUserRole> HistoryUserRoles { get; set; }
+        public IEnumerable<HistoryUserRole> History { get; set; }
     }
 }

@@ -9,7 +9,7 @@ namespace lab2_restapi_1205_taskmgmt.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "Role",
+                name: "History",
                 table: "Users");
 
             migrationBuilder.RenameColumn(
@@ -31,7 +31,7 @@ namespace lab2_restapi_1205_taskmgmt.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "HistoryUserRoles",
+                name: "History",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
@@ -60,19 +60,19 @@ namespace lab2_restapi_1205_taskmgmt.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_HistoryUserRoles_RoleId",
-                table: "HistoryUserRoles",
+                table: "History",
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_HistoryUserRoles_UserId",
-                table: "HistoryUserRoles",
+                table: "History",
                 column: "UserId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "HistoryUserRoles");
+                name: "History");
 
             migrationBuilder.DropTable(
                 name: "Roles");
@@ -83,7 +83,7 @@ namespace lab2_restapi_1205_taskmgmt.Migrations
                 newName: "createdAt");
 
             migrationBuilder.AddColumn<int>(
-                name: "Role",
+                name: "History",
                 table: "Users",
                 nullable: false,
                 defaultValue: 0);

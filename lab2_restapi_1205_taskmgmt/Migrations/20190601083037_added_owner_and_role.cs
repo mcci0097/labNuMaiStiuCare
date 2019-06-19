@@ -7,7 +7,7 @@ namespace lab2_restapi_1205_taskmgmt.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<int>(
-                name: "Role",
+                name: "History",
                 table: "Users",
                 nullable: false,
                 defaultValue: 0);
@@ -68,7 +68,7 @@ namespace lab2_restapi_1205_taskmgmt.Migrations
                 table: "Comments");
 
             migrationBuilder.DropColumn(
-                name: "Role",
+                name: "History",
                 table: "Users");
 
             migrationBuilder.DropColumn(

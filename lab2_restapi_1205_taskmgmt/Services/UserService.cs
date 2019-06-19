@@ -45,22 +45,24 @@ namespace lab2_restapi_1205_taskmgmt.Services
         public UserGetModel Authenticate(string username, string password)
         {
             var user = dbcontext.Users
-                .SingleOrDefault(x => x.Username == username && x.Password == ComputeSha256Hash(password));
+                .Include(x => x.History)
+                .ThenInclude(x => x.Role)
+                .SingleOrDefault(x => x.Username == username && x.Password == ComputeSha256Hash(password));          
 
             // return null if user not found
             if (user == null)
-                return null;
+                return null;            
 
             // authentication successful so generate jwt token
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(appSettings.Secret);
-            var tokenDescriptor = new SecurityTokenDescriptor
+            var tokenDescriptor = new SecurityTokenDescriptor           
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
                     new Claim(ClaimTypes.Name, user.Username.ToString()),
-                    //new Claim(ClaimTypes.Role, user.Role.ToString())
-                    new Claim(ClaimTypes.Role, getLatestHistoryUserRole(user.Role))
+                    //new Claim(ClaimTypes.Role, user.Role.ToString())                    
+                    new Claim(ClaimTypes.Role, getLatestHistoryUserRole(user.History).Title)
                 }),
                 Expires = DateTime.UtcNow.AddDays(7),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
@@ -137,7 +139,7 @@ namespace lab2_restapi_1205_taskmgmt.Services
             dbcontext.Roles.Add(role);                        
             dbcontext.Roles.Attach(role);
 
-            toBeAdded.Role = list;
+            toBeAdded.History = list;
 
             dbcontext.SaveChanges();
 
@@ -147,7 +149,7 @@ namespace lab2_restapi_1205_taskmgmt.Services
         public User GetCurentUser(HttpContext httpContext)
         {
             string username = httpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name).Value;
-            return dbcontext.Users.FirstOrDefault(u => u.Username == username);
+            return dbcontext.Users.Include(x => x.History).ThenInclude(x => x.Role).FirstOrDefault(u => u.Username == username);
         }
 
 
@@ -168,38 +170,56 @@ namespace lab2_restapi_1205_taskmgmt.Services
             return dbcontext.Users
                 .FirstOrDefault(u => u.Id == id);
         }
+        
+        public User Create(UserPostModel userModel)
+        {
+            User toBeAdded = new User
+            {
+                Email = userModel.Email,
+                LastName = userModel.LastName,
+                FirstName = userModel.FirstName,
+                Password = ComputeSha256Hash("aaa"),
+                Username = userModel.UserName,
+            };
+            dbcontext.Users.Add(toBeAdded);
+            dbcontext.SaveChanges();
+            dbcontext.Users.Attach(toBeAdded);
 
-        // This is the same thing as Register
-        //public User Create(UserPostModel userModel)
-        //{
-        //    User toAdd = UserPostModel.ToUser(userModel);
-        //    toAdd.CreatedAt = DateTime.Now;
+            Role role = new Role
+            {
+                Id = 1,
+                Title = RoleConstants.REGULAR
+            };
+            HistoryUserRole history = new HistoryUserRole
+            {
+                Role = role,
+                AllocatedAt = DateTime.Now
+            };
+            List<HistoryUserRole> list = new List<HistoryUserRole>
+            {
+                history
+            };
 
-        //    HistoryUserRole history = new HistoryUserRole();
-        //    history.Role.Title = RoleConstants.REGULAR;
-        //    history.AllocatedAt = DateTime.Now;
-        //    List<HistoryUserRole> list = new List<HistoryUserRole>
-        //    {
-        //        history
-        //    };
-        //    toAdd.Role = list;
+            dbcontext.Roles.Add(role);
+            dbcontext.Roles.Attach(role);
 
-        //    dbcontext.Users.Add(toAdd);
-        //    dbcontext.SaveChanges();
-        //    return toAdd;
-        //}
+            toBeAdded.History = list;
+
+            dbcontext.SaveChanges();
+
+            return toBeAdded;
+        }
 
         public User Upsert(int id, UserPostModel userPostModel, User addedBy)
         {
-            var existing = dbcontext.Users.AsNoTracking().FirstOrDefault(u => u.Id == id);
-            String existingCurrentRole = getLatestHistoryUserRole(existing.Role);
-            String addedByCurrentRole = getLatestHistoryUserRole(addedBy.Role);
+            var existing = dbcontext.Users.Include(x => x.History).ThenInclude(x => x.Role).AsNoTracking().FirstOrDefault(u => u.Id == id);
+            String existingCurrentRole = getLatestHistoryUserRole(existing.History).Title;
+            String addedByCurrentRole = getLatestHistoryUserRole(addedBy.History).Title;
 
             if (existing == null)
-            {
-                User toAdd = UserPostModel.ToUser(userPostModel);
-                dbcontext.Users.Add(toAdd);
-                dbcontext.SaveChanges();
+            {               
+                //This is bullshit business wise, if there is no entity to be update, there should be a create logic... we dont have create logic for update logic
+                User toAdd = Create(userPostModel);
                 return toAdd;
             }
 
@@ -215,15 +235,75 @@ namespace lab2_restapi_1205_taskmgmt.Services
             else if (((!existingCurrentRole.Equals(RoleConstants.ADMIN) || (!existingCurrentRole.Equals(RoleConstants.USER_MANAGER)) && addedByCurrentRole.Equals(RoleConstants.USER_MANAGER))) ||
                 (existingCurrentRole.Equals(RoleConstants.USER_MANAGER) && addedByCurrentRole.Equals(RoleConstants.USER_MANAGER) && addedBy.CreatedAt.AddMonths(6) <= DateTime.Now))
             {
-                toUpdate.Role = existing.Role;
+                toUpdate.History = existing.History;
                 dbcontext.Users.Update(toUpdate);
                 dbcontext.SaveChanges();
+                dbcontext.Users.Attach(toUpdate);
+
+                if (existingCurrentRole != userPostModel.UserRole) {
+                    IEnumerable<Role> allRoles = dbcontext.Roles;
+                    List<String> list = new List<string>();
+                    foreach (Role role in allRoles) {
+                        list.Add(role.Title);
+                    }
+                    if (list.Contains(userPostModel.UserRole))
+                    {
+                        Role role = searchForRoleByTitle(userPostModel.UserRole);
+                        HistoryUserRole history = new HistoryUserRole
+                        {
+                            Role = role,
+                            AllocatedAt = DateTime.Now
+                        };
+                        List<HistoryUserRole> histories = new List<HistoryUserRole>
+                        {
+                            history
+                        };
+                        dbcontext.Roles.Attach(role);
+                        toUpdate.History = histories;
+                        dbcontext.SaveChanges();
+                    }
+                    else {
+                        return null;
+                    }                
+                }
+
                 return toUpdate;
             }
             else if (addedByCurrentRole.Equals(RoleConstants.ADMIN))
             {
                 dbcontext.Users.Update(toUpdate);
                 dbcontext.SaveChanges();
+
+                if (existingCurrentRole != userPostModel.UserRole)
+                {
+                    IEnumerable<Role> allRoles = dbcontext.Roles;
+                    List<String> list = new List<string>();
+                    foreach (Role role in allRoles)
+                    {
+                        list.Add(role.Title);
+                    }
+                    if (list.Contains(userPostModel.UserRole))
+                    {
+                        Role role = searchForRoleByTitle(userPostModel.UserRole);
+                        HistoryUserRole history = new HistoryUserRole
+                        {
+                            Role = role,
+                            AllocatedAt = DateTime.Now
+                        };
+                        List<HistoryUserRole> histories = new List<HistoryUserRole>
+                        {
+                            history
+                        };
+                        dbcontext.Roles.Attach(role);
+                        toUpdate.History = histories;
+                        dbcontext.SaveChanges();
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+
                 return toUpdate;
             }
             return null;
@@ -233,8 +313,8 @@ namespace lab2_restapi_1205_taskmgmt.Services
         public User Delete(int id, User addedBy)
         {
             var existing = dbcontext.Users.FirstOrDefault(u => u.Id == id);
-            String existingCurrentRole = getLatestHistoryUserRole(existing.Role);
-            String addedByCurrentRole = getLatestHistoryUserRole(addedBy.Role);
+            String existingCurrentRole = getLatestHistoryUserRole(existing.History).Title;
+            String addedByCurrentRole = getLatestHistoryUserRole(addedBy.History).Title;
             if (existing == null)
             {
                 return null;
@@ -272,11 +352,28 @@ namespace lab2_restapi_1205_taskmgmt.Services
             return null;
         }
 
-        private String getLatestHistoryUserRole(IEnumerable<HistoryUserRole> allHistory)
+        private Role getLatestHistoryUserRole(IEnumerable<HistoryUserRole> allHistory)
         {
             var latestHistoryUserRole = allHistory.OrderBy(x => x.AllocatedAt).FirstOrDefault();
-            return latestHistoryUserRole.Role.Title;
+            if (latestHistoryUserRole.RemovedAt == null)
+            {
+                return latestHistoryUserRole.Role;
+            }
+            //TODO if we erase from db directly, the RemovedAt will not change to null and the user will have no current role
+            return null;
         }
+
+        private Role searchForRoleByTitle(String title) {
+            IEnumerable<Role> roles = dbcontext.Roles;
+            foreach (Role role in roles) {
+                if (role.Title.Equals(title))
+                {
+                    return role;
+                }
+            }
+            return null;
+        }
+
     }
 }
 
