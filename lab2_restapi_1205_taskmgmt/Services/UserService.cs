@@ -23,7 +23,8 @@ namespace lab2_restapi_1205_taskmgmt.Services
         IEnumerable<UserGetModel> GetAll();
         User GetCurentUser(HttpContext httpContext);
 
-        IEnumerable<HistoryGetModel> GetById(int id);
+        UserGetModel GetById(int id);
+        IEnumerable<HistoryGetModel> GetHistoryById(int id);
         //User Create(UserPostModel userModel);
         User Upsert(int id, UserPostModel userPostModel, User addedBy);
         User Delete(int id, User addedBy);
@@ -165,7 +166,7 @@ namespace lab2_restapi_1205_taskmgmt.Services
             });
         }
 
-        public IEnumerable<HistoryGetModel> GetById(int id)
+        public IEnumerable<HistoryGetModel> GetHistoryById(int id)
         {
             List<HistoryUserRole> histories = dbcontext.Users
                 .Include(x => x.History)
@@ -178,7 +179,17 @@ namespace lab2_restapi_1205_taskmgmt.Services
             var list = returnList.OrderBy(x => x.AllocatedAt);
             return list;
         }
-        
+
+        public UserGetModel GetById(int id)
+        {
+            User user = dbcontext.Users
+                .FirstOrDefault(u => u.Id == id);
+            if (user == null) {
+                return null;
+            }
+            return UserGetModel.FromUser(user);
+        }
+
         public User Create(UserPostModel userModel)
         {
             User toBeAdded = new User
@@ -402,7 +413,7 @@ namespace lab2_restapi_1205_taskmgmt.Services
                 Role = admin,
                 AllocatedAt = DateTime.Now,
             };
-            getLatestHistoryUserRole(user.History).RemovedAt = DateTime.Now;            
+            //getLatestHistoryUserRole(user.History).RemovedAt = DateTime.Now;            
             user.History.Add(history);
         }
 

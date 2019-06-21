@@ -93,9 +93,17 @@ namespace Tests
                     ClosedAt = null,
                     Comments = null
                 };
-                //var existing = context.Ta(tasksService.Create(resultTaskPostModel));
 
-                //var lalala = tasksService.Create(resultTaskPostModel);                 
+                var user = new User
+                {
+                    FirstName = "Frodo",
+                    LastName = "Baggings",
+                    Email = "frodo@yahoo.com",
+                    Username = "frodo",
+                    Password = "lalala",
+                    CreatedAt = DateTime.Now
+                };
+                var lalala = tasksService.Create(resultTaskPostModel, user);                 
 
                 List<Comment> comments = new List<Comment>();
                 Comment comment = new Comment();
@@ -114,14 +122,14 @@ namespace Tests
                     Deadline = dateDeadline,
                     ClosedAt = null,
                     Comments = comments
-                };                
+                };
+                context.Entry(lalala).State = EntityState.Detached;
+                //tasksService.Upsert(lalala.Id, resultTask);
 
-                //tasksService.Upsert(lalala.Id, resultTask);                
-
-                //Assert.AreEqual(savetask.Title, "Read4");
-                //Assert.AreEqual(savetask.Description, "Read4");
-                //Assert.AreEqual(savetask.Deadline, dateDeadline);
-                //Assert.AreEqual(savetask.Comments, comments);
+                Assert.AreEqual(resultTask.Title, "Read4");
+                Assert.AreEqual(resultTask.Description, "Read4");
+                Assert.AreEqual(resultTask.Deadline, dateDeadline);
+                Assert.AreEqual(resultTask.Comments, comments);
             }
         }
     }
