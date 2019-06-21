@@ -161,7 +161,7 @@ namespace lab2_restapi_1205_taskmgmt.Controllers
         /// </remarks>
         /// <returns>Status 200 daca a fost modificat</returns>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]        
         [Authorize(Roles = "Admin,User_Manager")]
         [HttpPut("{id}")]
         public IActionResult Put(int id, [FromBody] UserPostModel userPostModel)
@@ -170,9 +170,9 @@ namespace lab2_restapi_1205_taskmgmt.Controllers
             var result = userService.Upsert(id, userPostModel, addedBy);
             if (result == null)
             {
-                return Forbid("You have no power here !");
+                return Forbid("You have no power here !");                
             }
-            return Ok(result);
+            return Ok(result.FirstName + " was created.");
         }
 
 

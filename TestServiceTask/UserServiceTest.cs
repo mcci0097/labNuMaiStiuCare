@@ -1,4 +1,5 @@
-﻿using lab2_restapi_1205_taskmgmt.Models;
+﻿using lab2_restapi_1205_taskmgmt.Constants;
+using lab2_restapi_1205_taskmgmt.Models;
 using lab2_restapi_1205_taskmgmt.Services;
 using lab2_restapi_1205_taskmgmt.ViewModels;
 using Microsoft.EntityFrameworkCore;
@@ -110,6 +111,75 @@ namespace TestServiceTask
 
                 Assert.AreEqual(1, result.Count());
 
+            }
+        }
+
+        [Test]
+        public void Upsert()
+        {
+            var options = new DbContextOptionsBuilder<TasksDbContext>()
+              .UseInMemoryDatabase(databaseName: nameof(Upsert))
+              .Options;
+
+            using (var context = new TasksDbContext(options))
+            {
+                var usersService = new UserService(context, config);
+
+                Role role = new Role
+                {
+                    Title = RoleConstants.ADMIN
+                };
+
+                HistoryUserRole history = new HistoryUserRole
+                {
+                    Role = role,
+                };
+                List<HistoryUserRole> list = new List<HistoryUserRole>
+                {
+                    history
+                };
+
+                User aragorn = new User
+                {
+                    Username = "kingman",
+                    History = list,
+                    CreatedAt = DateTime.Now
+                    
+                };
+                aragorn.History.Add(history);
+
+                var second = new RegisterPostModel
+                {
+                    Email = "legolas@yahoo.com",
+                    FirstName = "Legolas",
+                    LastName = "Bowmaster",
+                    Password = "12345678",
+                    Username = "legolas"
+                };
+
+                var third = new UserPostModel
+                {
+                    FirstName = "Gimli",
+                    LastName = "Axeman",
+                    UserName = "gimli",
+                    Email = "gimli@gmail.com",
+                    UserRole = RoleConstants.USER_MANAGER
+                };                                              
+
+                usersService.Register(second);
+                User legolas = context.Users.AsNoTracking().Include(x => x.History).ThenInclude(x => x.Role).FirstOrDefault(x => x.FirstName.Equals(second.FirstName));
+                context.Entry(legolas).State = EntityState.Detached;
+                //context.Entry(third).State = EntityState.Detached;
+
+                usersService.Upsert(legolas.Id, third, aragorn);
+
+                User legolasUpdated = context.Users.AsNoTracking().Include(x => x.History).ThenInclude(x => x.Role).FirstOrDefault(x => x.Id.Equals(legolas.Id));
+
+                Assert.AreNotEqual(legolasUpdated.FirstName, second.FirstName);
+                Assert.AreNotEqual(legolasUpdated.Username, second.Username);
+                Assert.AreNotEqual(legolasUpdated.LastName, second.LastName);
+                Assert.AreNotEqual(legolasUpdated.Email, second.Email);
+                Assert.AreNotEqual(RoleConstants.REGULAR, legolasUpdated.History.FirstOrDefault().Role.Title);                                               
             }
         }
 

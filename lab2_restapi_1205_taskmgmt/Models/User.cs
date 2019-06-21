@@ -17,7 +17,7 @@ namespace lab2_restapi_1205_taskmgmt.Models
         public string Password { get; set; }
         //[EnumDataType(typeof(UserRole))]
         //public UserRole Role { get; set; }
-        public IEnumerable<HistoryUserRole> History { get; set; }
+        public List<HistoryUserRole> History { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 

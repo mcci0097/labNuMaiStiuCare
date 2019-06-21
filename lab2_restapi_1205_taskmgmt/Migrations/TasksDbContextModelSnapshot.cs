@@ -62,10 +62,10 @@ namespace lab2_restapi_1205_taskmgmt.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("History");
+                    b.ToTable("HistoryUserRoles");
                 });
 
-            modelBuilder.Entity("lab2_restapi_1205_taskmgmt.Models.History", b =>
+            modelBuilder.Entity("lab2_restapi_1205_taskmgmt.Models.Role", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -147,7 +147,7 @@ namespace lab2_restapi_1205_taskmgmt.Migrations
 
             modelBuilder.Entity("lab2_restapi_1205_taskmgmt.Models.HistoryUserRole", b =>
                 {
-                    b.HasOne("lab2_restapi_1205_taskmgmt.Models.History", "History")
+                    b.HasOne("lab2_restapi_1205_taskmgmt.Models.Role", "Role")
                         .WithMany("History")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade);
