@@ -1,5 +1,6 @@
 using lab2_restapi_1205_taskmgmt.Models;
 using lab2_restapi_1205_taskmgmt.Services;
+using lab2_restapi_1205_taskmgmt.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using NUnit.Framework;
@@ -23,6 +24,44 @@ namespace Tests
         }
 
         [Test]
+        public void GetAll()
+        {
+            var options = new DbContextOptionsBuilder<TasksDbContext>()
+             .UseInMemoryDatabase(databaseName: nameof(CreateANewTask))// "CreateANewTask")
+             .Options;
+            using (var context = new TasksDbContext(options))
+            {
+                var tasksService = new TaskService(context);
+
+                User user = new User
+                {
+                    Username = "ALDLSLADLAJDSA"
+                };
+
+                TaskPostModel task = new TaskPostModel
+                {
+                    Title = "tdssgafgadfla"
+                };
+                TaskPostModel task2 = new TaskPostModel
+                {
+                    Title = "Alallalalalaal"
+                };
+                TaskPostModel task3 = new TaskPostModel
+                {
+                    Title = "fdsjgaoidsfhgasidl"
+                };
+                tasksService.Create(task, user);
+                tasksService.Create(task2, user);
+                tasksService.Create(task3, user);
+                var populated = tasksService.GetAll(1);
+                var empty = tasksService.GetAll(2);
+                Assert.AreEqual(3, populated.Entries.Count);
+                Assert.Zero(empty.Entries.Count);
+
+            }
+        }
+
+        [Test]
         public void CreateANewTask()
         {
             var options = new DbContextOptionsBuilder<TasksDbContext>()
@@ -32,6 +71,10 @@ namespace Tests
             {
                 var tasksService = new TaskService(context);
                 Task task = new Task();
+                User user = new User
+                {
+                    Username = "ALDLSLADLAJDSA"
+                };
                 var create = new lab2_restapi_1205_taskmgmt.ViewModels.TaskPostModel
                 {
                     Title = "Read1",
@@ -43,9 +86,9 @@ namespace Tests
                     State = "InProgress",
                     Comments = task.Comments
                 };
-                //var result = tasksService.Create(create);
-                //Assert.NotNull(result);
-                //Assert.AreEqual(create.Title, result.Title);
+                var result = tasksService.Create(create, user);
+                Assert.NotNull(result);
+                Assert.AreEqual(create.Title, result.Title);
             }
 
         }
@@ -59,6 +102,10 @@ namespace Tests
             using (var context = new TasksDbContext(options))
             {
                 var tasksService = new TaskService(context);
+                User user = new User
+                {
+                    Username = "ALDLSLADLAJDSA"
+                };
                 var result = new lab2_restapi_1205_taskmgmt.ViewModels.TaskPostModel
                 {
                     Title = "Read2",
@@ -68,10 +115,10 @@ namespace Tests
                     ClosedAt = null,
                     Comments = null
                 };
-                //Task savetask = tasksService.Create(result);
-                //Task task2 = tasksService.Delete(savetask.Id);
+                Task savetask = tasksService.Create(result, user);
+                tasksService.Delete(savetask.Id);
 
-                //Assert.IsNull(tasksService.GetById(task2.Id));
+                Assert.IsNull(tasksService.GetById(savetask.Id));
             }
         }
 
