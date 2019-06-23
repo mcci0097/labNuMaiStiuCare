@@ -144,7 +144,7 @@ namespace lab2_restapi_1205_taskmgmt.Services
 
             dbcontext.SaveChanges();
 
-            return Authenticate(registerInfo.Username, registerInfo.Password);
+            return Authenticate(registerInfo.Username, registerInfo.Password);            
         }
 
         public User GetCurentUser(HttpContext httpContext)
@@ -231,13 +231,14 @@ namespace lab2_restapi_1205_taskmgmt.Services
 
         public User Upsert(int id, UserPostModel userPostModel, User addedBy)
         {
-            var existing = dbcontext.Users.Include(x => x.History).ThenInclude(x => x.Role).AsNoTracking().FirstOrDefault(u => u.Id == id);
-            //IEnumerable<HistoryUserRole> existing2 = dbcontext.HistoryUserRoles.Where(u => u.UserId == id);            
-            String existingCurrentRole = getLatestHistoryUserRole(existing.History).Role.Title;
-            String addedByCurrentRole = getLatestHistoryUserRole(addedBy.History).Role.Title;
+            var existing = dbcontext.Users
+                .Include(x => x.History)
+                .ThenInclude(x => x.Role)
+                .AsNoTracking()
+                .FirstOrDefault(u => u.Id == id);            
 
-            //String existingCurrentRole = getLatestHistoryUserRole(existing2).Role.Title;
-            //String addedByCurrentRole = getLatestHistoryUserRole(addedBy.History).Role.Title;
+            String existingCurrentRole = getLatestHistoryUserRole(existing.History).Role.Title;
+            String addedByCurrentRole = getLatestHistoryUserRole(addedBy.History).Role.Title;            
 
             HistoryUserRole currentHistory = getLatestHistoryUserRole(existing.History);
             
@@ -294,7 +295,7 @@ namespace lab2_restapi_1205_taskmgmt.Services
                 return toUpdate;
             }
             if (addedByCurrentRole.Equals(RoleConstants.ADMIN))
-            {
+            {                
                 dbcontext.Users.Update(toUpdate);
                 dbcontext.SaveChanges();
 

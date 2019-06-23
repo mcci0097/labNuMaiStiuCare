@@ -117,19 +117,32 @@ namespace TestServiceTask
         [Test]
         public void Upsert()
         {
-            var options = new DbContextOptionsBuilder<TasksDbContext>()
+            var options = new DbContextOptionsBuilder<TasksDbContext>()                
               .UseInMemoryDatabase(databaseName: nameof(Upsert))
               .Options;
 
             using (var context = new TasksDbContext(options))
             {
                 var usersService = new UserService(context, config);
+                var roleService = new RoleService(context, config);
+
+                var regularPost = new RolePostModel
+                {
+                    Title = RoleConstants.REGULAR
+                };
+                var regular = roleService.Create(regularPost);
+                context.Entry(regular).State = EntityState.Detached;
+                var adminPost = new RolePostModel
+                {
+                    Title = RoleConstants.ADMIN
+                };                
+                var admin = roleService.Create(adminPost);
+                context.Entry(admin).State = EntityState.Detached;
 
                 Role role = new Role
                 {
                     Title = RoleConstants.ADMIN
                 };
-
                 HistoryUserRole history = new HistoryUserRole
                 {
                     Role = role,
@@ -138,17 +151,15 @@ namespace TestServiceTask
                 {
                     history
                 };
-
                 User aragorn = new User
                 {
                     Username = "kingman",
                     History = list,
                     CreatedAt = DateTime.Now
                     
-                };
-                aragorn.History.Add(history);
+                };                
 
-                var second = new RegisterPostModel
+                var toBeAdded = new RegisterPostModel
                 {
                     Email = "legolas@yahoo.com",
                     FirstName = "Legolas",
@@ -156,30 +167,40 @@ namespace TestServiceTask
                     Password = "12345678",
                     Username = "legolas"
                 };
+                usersService.Register(toBeAdded);
 
-                var third = new UserPostModel
+                var toUpdateWith = new UserPostModel
                 {
                     FirstName = "Gimli",
                     LastName = "Axeman",
                     UserName = "gimli",
                     Email = "gimli@gmail.com",
-                    UserRole = RoleConstants.USER_MANAGER
+                    UserRole = RoleConstants.ADMIN
                 };                                              
+                
+                User legolas = context.Users
+                    .AsNoTracking()
+                    .Include(x => x.History)
+                    .ThenInclude(x => x.Role)
+                    .FirstOrDefault(x => x.FirstName.Equals(toBeAdded.FirstName));
 
-                usersService.Register(second);
-                User legolas = context.Users.AsNoTracking().Include(x => x.History).ThenInclude(x => x.Role).FirstOrDefault(x => x.FirstName.Equals(second.FirstName));
-                context.Entry(legolas).State = EntityState.Detached;
-                //context.Entry(third).State = EntityState.Detached;
+                var lala = context.ChangeTracker.Entries()
+                    .Where(t => t.State == EntityState.Modified);
 
-                //usersService.Upsert(legolas.Id, third, aragorn);
+                //context.Entry(test).State = EntityState.Detached;
+                usersService.Upsert(legolas.Id, toUpdateWith, aragorn);
 
-                User legolasUpdated = context.Users.AsNoTracking().Include(x => x.History).ThenInclude(x => x.Role).FirstOrDefault(x => x.Id.Equals(legolas.Id));
+                User gimli = context.Users
+                    .AsNoTracking()
+                    .Include(x => x.History)
+                    .ThenInclude(x => x.Role)
+                    .FirstOrDefault(x => x.Id.Equals(legolas.Id));
 
-                //Assert.AreNotEqual(legolasUpdated.FirstName, second.FirstName);
-                //Assert.AreNotEqual(legolasUpdated.Username, second.Username);
-                //Assert.AreNotEqual(legolasUpdated.LastName, second.LastName);
-                //Assert.AreNotEqual(legolasUpdated.Email, second.Email);
-                //Assert.AreNotEqual(RoleConstants.REGULAR, legolasUpdated.History.FirstOrDefault().Role.Title);                                               
+                Assert.AreNotEqual(gimli.FirstName, legolas.FirstName);
+                Assert.AreNotEqual(gimli.Username, legolas.Username);
+                Assert.AreNotEqual(gimli.LastName, legolas.LastName);
+                Assert.AreNotEqual(gimli.Email, legolas.Email);
+                Assert.AreNotEqual(RoleConstants.REGULAR, gimli.History.FirstOrDefault().Role.Title);                                               
             }
         }
 
