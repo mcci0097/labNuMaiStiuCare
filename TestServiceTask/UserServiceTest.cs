@@ -123,6 +123,7 @@ namespace TestServiceTask
 
             using (var context = new TasksDbContext(options))
             {
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
                 var usersService = new UserService(context, config);
                 var roleService = new RoleService(context, config);
 
@@ -135,7 +136,7 @@ namespace TestServiceTask
                 var adminPost = new RolePostModel
                 {
                     Title = RoleConstants.ADMIN
-                };                
+                };
                 var admin = roleService.Create(adminPost);
                 context.Entry(admin).State = EntityState.Detached;
 
@@ -156,8 +157,62 @@ namespace TestServiceTask
                     Username = "kingman",
                     History = list,
                     CreatedAt = DateTime.Now
-                    
-                };                
+                };
+
+
+                Role roleLegolas = new Role
+                {
+                    Title = RoleConstants.REGULAR
+                };
+                HistoryUserRole historyLegolas = new HistoryUserRole
+                {
+                    Role = roleLegolas,
+                };
+                List<HistoryUserRole> listLegolas = new List<HistoryUserRole>
+                {
+                    historyLegolas
+                };
+                User legolas = new User
+                {
+                    Username = "legolas",
+                    History = listLegolas,
+                    CreatedAt = DateTime.Now
+                };
+                context.Users.Add(legolas);
+                context.SaveChanges();
+            }
+
+            using (var context = new TasksDbContext(options)) {
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+                var roleService = new RoleService(context, config);
+                var usersService = new UserService(context, config);
+
+                var adminPost = new RolePostModel
+                {
+                    Title = RoleConstants.ADMIN
+                };
+                var admin = roleService.Create(adminPost);
+                context.Entry(admin).State = EntityState.Detached;
+
+                Role role = new Role
+                {
+                    Title = RoleConstants.ADMIN
+                };
+                HistoryUserRole history = new HistoryUserRole
+                {
+                    Role = role,
+                };
+                List<HistoryUserRole> list = new List<HistoryUserRole>
+                {
+                    history
+                };
+                User aragorn = new User
+                {
+                    Username = "kingman",
+                    History = list,
+                    CreatedAt = DateTime.Now
+
+                };
 
                 var toBeAdded = new RegisterPostModel
                 {
@@ -167,7 +222,7 @@ namespace TestServiceTask
                     Password = "12345678",
                     Username = "legolas"
                 };
-                usersService.Register(toBeAdded);
+                //usersService.Register(toBeAdded);
 
                 var toUpdateWith = new UserPostModel
                 {
@@ -178,29 +233,33 @@ namespace TestServiceTask
                     UserRole = RoleConstants.ADMIN
                 };                                              
                 
-                User legolas = context.Users
-                    .AsNoTracking()
-                    .Include(x => x.History)
-                    .ThenInclude(x => x.Role)
-                    .FirstOrDefault(x => x.FirstName.Equals(toBeAdded.FirstName));
+                //User legolas = context.Users
+                //    .AsNoTracking()
+                //    .Include(x => x.History)                    
+                //    .ThenInclude(x => x.Role)
+                //    .AsNoTracking()
+                //    .FirstOrDefault(x => x.FirstName.Equals(toBeAdded.FirstName));
+
+                //context.Entry(legolas).State = EntityState.Detached;
+                //context.SaveChanges();
 
                 var lala = context.ChangeTracker.Entries()
-                    .Where(t => t.State == EntityState.Modified);
+                    .Where(t => t.State == EntityState.Unchanged);
 
                 //context.Entry(test).State = EntityState.Detached;
-                usersService.Upsert(legolas.Id, toUpdateWith, aragorn);
+                usersService.Upsert(1, toUpdateWith, aragorn);
 
-                User gimli = context.Users
-                    .AsNoTracking()
-                    .Include(x => x.History)
-                    .ThenInclude(x => x.Role)
-                    .FirstOrDefault(x => x.Id.Equals(legolas.Id));
+                //User gimli = context.Users
+                //    .AsNoTracking()
+                //    .Include(x => x.History)
+                //    .ThenInclude(x => x.Role)
+                //    .FirstOrDefault(x => x.Id.Equals(legolas.Id));
 
-                Assert.AreNotEqual(gimli.FirstName, legolas.FirstName);
-                Assert.AreNotEqual(gimli.Username, legolas.Username);
-                Assert.AreNotEqual(gimli.LastName, legolas.LastName);
-                Assert.AreNotEqual(gimli.Email, legolas.Email);
-                Assert.AreNotEqual(RoleConstants.REGULAR, gimli.History.FirstOrDefault().Role.Title);                                               
+                //Assert.AreNotEqual(gimli.FirstName, legolas.FirstName);
+                //Assert.AreNotEqual(gimli.Username, legolas.Username);
+                //Assert.AreNotEqual(gimli.LastName, legolas.LastName);
+                //Assert.AreNotEqual(gimli.Email, legolas.Email);
+                //Assert.AreNotEqual(RoleConstants.REGULAR, gimli.History.FirstOrDefault().Role.Title);                                               
             }
         }
 

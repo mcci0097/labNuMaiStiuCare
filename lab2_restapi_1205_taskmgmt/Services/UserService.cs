@@ -263,9 +263,9 @@ namespace lab2_restapi_1205_taskmgmt.Services
                 (existingCurrentRole.Equals(RoleConstants.USER_MANAGER) && addedByCurrentRole.Equals(RoleConstants.USER_MANAGER) && addedBy.CreatedAt.AddMonths(6) <= DateTime.Now))
             {
                 toUpdate.History = existing.History;
-                dbcontext.Users.Update(toUpdate);
-                dbcontext.SaveChanges();
                 dbcontext.Users.Attach(toUpdate);
+                dbcontext.Users.Update(toUpdate);
+                dbcontext.SaveChanges();                
 
                 if (existingCurrentRole != userPostModel.UserRole) {
                     IEnumerable<Role> allRoles = dbcontext.Roles;
