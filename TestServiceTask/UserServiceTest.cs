@@ -255,11 +255,11 @@ namespace TestServiceTask
                 //    .ThenInclude(x => x.Role)
                 //    .FirstOrDefault(x => x.Id.Equals(legolas.Id));
 
-                //Assert.AreNotEqual(gimli.FirstName, legolas.FirstName);
-                //Assert.AreNotEqual(gimli.Username, legolas.Username);
-                //Assert.AreNotEqual(gimli.LastName, legolas.LastName);
-                //Assert.AreNotEqual(gimli.Email, legolas.Email);
-                //Assert.AreNotEqual(RoleConstants.REGULAR, gimli.History.FirstOrDefault().Role.Title);                                               
+                Assert.AreNotEqual(gimli.FirstName, legolas.FirstName);
+                Assert.AreNotEqual(gimli.Username, legolas.Username);
+                Assert.AreNotEqual(gimli.LastName, legolas.LastName);
+                Assert.AreNotEqual(gimli.Email, legolas.Email);
+                Assert.AreNotEqual(RoleConstants.REGULAR, gimli.History.FirstOrDefault().Role.Title);
             }
         }
 
