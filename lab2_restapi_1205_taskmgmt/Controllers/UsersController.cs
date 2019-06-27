@@ -104,7 +104,7 @@ namespace lab2_restapi_1205_taskmgmt.Controllers
         [HttpGet("{id}", Name = "GetUser")]
         public IActionResult Get(int id)
         {
-            var found = userService.GetHistoryById(id);
+            var found = userService.GetById(id);
             if (found == null)
             {
                 return NotFound();

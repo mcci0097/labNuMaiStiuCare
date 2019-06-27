@@ -74,12 +74,13 @@ namespace lab2_restapi_1205_taskmgmt.Services
             {
                 result = result.Where(f => f.Deadline <= to);
             }
-            
+
+            paginatedList.TotalEntries = result.Count();
             paginatedList.NumberOfPages = (result.Count() - 1) / PaginatedList<TaskGetModel>.EntriesPerPage + 1;
             result = result
                 .Skip((page - 1) * PaginatedList<TaskGetModel>.EntriesPerPage)
                 .Take(PaginatedList<TaskGetModel>.EntriesPerPage);
-            paginatedList.Entries = result.Select(t => TaskGetModel.FromTask(t)).ToList();
+            paginatedList.Entries = result.Select(t => TaskGetModel.FromTask(t)).ToList();            
 
             return paginatedList;
         }
