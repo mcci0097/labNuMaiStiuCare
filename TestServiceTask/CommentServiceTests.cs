@@ -51,11 +51,7 @@ namespace TestServiceTask
 
                 commentService.Create(added);
                 commentService.Create(added2);
-               //test
-               //test
-               dsada
-               dsadadsa
-               dsadsa
+              
 
                 var result = commentService.GetAll(string.Empty);
                 Assert.AreEqual(0, result.Count());
