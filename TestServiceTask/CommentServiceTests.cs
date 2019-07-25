@@ -51,6 +51,7 @@ namespace TestServiceTask
 
                 commentService.Create(added);
                 commentService.Create(added2);
+                dsadsa
               
 
                 var result = commentService.GetAll(string.Empty);
